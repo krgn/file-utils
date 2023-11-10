@@ -1,6 +1,5 @@
 use clap::Parser;
 use polars::prelude::*;
-use rayon::prelude::ParallelIterator;
 use std::{
     fs::File,
     io::{self, BufReader},
@@ -10,27 +9,16 @@ use std::{
 #[command(author, version, about, long_about = None)]
 struct Args {
     #[arg(short, long)]
-    file: Option<String>,
-}
+    input_file: String,
 
-fn stdin_connected() -> bool {
-    atty::isnt(atty::Stream::Stdin)
+    #[arg(short, long)]
+    output_file: Option<String>,
 }
 
 fn main() -> io::Result<()> {
     let args = Args::parse();
 
-    if args.file.is_none() && !stdin_connected() {
-        eprintln!("Error: stdin not used nor --file was specified");
-        std::process::exit(1)
-    }
-
-    if args.file.is_none() {
-        eprintln!("Error: streaming not implemented and --file was not specified");
-        std::process::exit(1)
-    }
-
-    let file = File::open(args.file.unwrap())?;
+    let file = File::open(args.input_file)?;
     let reader = BufReader::new(file);
     let schema = Schema::from_iter(vec![
         Field::new("file_path", DataType::Utf8),
@@ -52,13 +40,21 @@ fn main() -> io::Result<()> {
         ])
         .filter(col("count").gt(1))
         .collect()
-        .expect("boom");
+        .expect("could not collect result of aggregation");
 
-    let mut outfile = File::create("out.json").expect("unable to create out.json");
-    JsonWriter::new(&mut outfile)
-        .with_json_format(JsonFormat::JsonLines)
-        .finish(&mut result)
-        .unwrap();
+    if let Some(path) = args.output_file {
+        let mut file = File::create(path).expect("unable to create output file");
+        JsonWriter::new(&mut file)
+            .with_json_format(JsonFormat::JsonLines)
+            .finish(&mut result)
+            .unwrap();
+    } else {
+        let mut stdout = std::io::stdout();
+        JsonWriter::new(&mut stdout)
+            .with_json_format(JsonFormat::JsonLines)
+            .finish(&mut result)
+            .unwrap();
+    }
 
     Ok(())
 }
