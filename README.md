@@ -21,5 +21,5 @@ This command expects JSON input in the format from above, and outputs a list
 of content hashes and the files that match it. Only duplicates will be output.
 
 ```
-cargo run --bin find-duplicates --file /path/to/my-fotos.json
+cargo run --bin find-duplicates --input-file /path/to/my-fotos.json
 ```
