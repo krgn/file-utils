@@ -11,17 +11,23 @@ path = "bin/extract_metadata.rs"
 name = "find-duplicates"
 path = "bin/find_duplicates.rs"
 
+[[bin]]
+name = "move-files"
+path = "bin/move_files.rs"
+
 [lib]
 name = "dedupe_utils"
 
 [dependencies]
 atty = "0.2.14"
 blake2 = { version = "0.10.6" }
+chrono = { version = "0.4.31", features = ["serde"] }
 clap = { version = "4.4.7", features = ["env", "derive"] }
 data-encoding = "2.4.0"
 fasthash = "0.4.0"
 globwalker = "0.9.0"
 polars = { version = "0.34.2", features = ["json", "streaming", "lazy", "simd"] }
+rand = "0.8.5"
 rayon = "1.8.0"
 serde = { version = "1.0.192", features = ["derive"] }
 serde_derive = "1.0.192"
